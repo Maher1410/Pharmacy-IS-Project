@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .section { display: none; }
+        .active { display: block; }
+        .nav-link { transition: all 0.3s; }
+        .nav-link:hover { transform: translateX(5px); }
+    </style>
+    <style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .print-table {
+            width: 100% !important;
+            font-size: 12px !important;
+        }
+        .print-table th, .print-table td {
+            padding: 4px !important;
+        }
+    }
+</style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="bg-white w-64 min-h-screen shadow-lg p-4">
+            <h1 class="text-2xl font-bold text-blue-600 mb-8">PharmaSys</h1>
+            <nav class="space-y-2">
+                <button onclick="showSection('dashboard')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    📊 Dashboard
+                </button>
+                <button onclick="showSection('medicines')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    💊 Medicines
+                </button>
+                <button onclick="showSection('categories')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    📁 Categories
+                </button>
+                <button onclick="showSection('suppliers')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    🚚 Suppliers
+                </button>
+                <button onclick="showSection('purchases')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    📦 Purchases
+                </button>
+                <button onclick="showSection('sales')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    💰 Sales
+                </button>
+                <button onclick="showSection('customers')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    👥 Customers
+                </button>
+                <button onclick="showSection('inventory')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                    📋 Inventory Logs
+                </button>
+                <button onclick="showSection('employees')" class="nav-link w-full text-left p-2 rounded hover:bg-blue-50">
+                     👥 Employees
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">System Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">  
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">Total Medicines</h3>
+                        <p id="total-medicines" class="text-3xl text-blue-600">-</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">Low Stock Alerts</h3>
+                        <p id="low-stock" class="text-3xl text-red-600">-</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-2">Recent Sales</h3>
+                        <p id="recent-sales" class="text-3xl text-green-600">-</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Expiring Soon</h3>
+        <p id="expiring-soon" class="text-3xl text-orange-600">-</p>
+    </div>
+                </div>
+            </section>
+
+            <!-- Medicines Section -->
+            <section id="medicines" class="section">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-700">Medicine Management</h2>
+                    <button onclick="toggleMedicineForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Add New Medicine
+                    </button>
+                </div>
+
+                <!-- Add Medicine Form -->
+                <form id="medicineForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="handleMedicineSubmit(event)">
+    <input type="hidden" id="editMedicineId">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="text" name="name" placeholder="Medicine Name" class="p-2 border rounded" required>
+        <input type="text" name="manufacturer" placeholder="Manufacturer" class="p-2 border rounded" required>
+        <input type="date" name="expiry" class="p-2 border rounded" required>
+        <input type="number" step="0.01" name="price" placeholder="Price" class="p-2 border rounded" required>
+        <input type="number" name="stock" placeholder="Stock Quantity" class="p-2 border rounded" required>
+        <select name="category" class="p-2 border rounded" required>
+            <option value="">Select Category</option>
+        </select>
+    </div>
+    <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Save Changes
+    </button>
+</form>
+
+                <!-- Medicines Table -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left">Name</th>
+                                <th class="px-6 py-3 text-left">Manufacturer</th>
+                                <th class="px-6 py-3 text-left">Expiry</th>
+                                <th class="px-6 py-3 text-left">Price</th>
+                                <th class="px-6 py-3 text-left">Stock</th>
+                                <th class="px-6 py-3 text-left">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicinesList" class="divide-y divide-gray-200">
+                            <!-- Dynamic content -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+<section id="categories" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Medicine Categories</h2>
+        <button onclick="toggleCategoryForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Category
+        </button>
+    </div>
+
+    <form id="categoryForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addCategory(event)">
+        <input type="hidden" id="editCategoryId">
+        <div class="space-y-4">
+            <input type="text" name="categoryName" placeholder="Category Name" 
+                   class="w-full p-2 border rounded" required>
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Save Category
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Category Name</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoriesList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Suppliers Section -->
+<section id="suppliers" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Suppliers Management</h2>
+        <button onclick="toggleSupplierForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Supplier
+        </button>
+    </div>
+
+    <form id="supplierForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addSupplier(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" name="name" placeholder="Supplier Name" class="p-2 border rounded" required>
+            <input type="tel" name="contact" placeholder="Contact Number" class="p-2 border rounded" required>
+            <input type="email" name="email" placeholder="Email" class="p-2 border rounded" required>
+            <input type="text" name="address" placeholder="Address" class="p-2 border rounded" required>
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Save Supplier
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Name</th>
+                    <th class="px-6 py-3 text-left">Contact</th>
+                    <th class="px-6 py-3 text-left">Email</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="suppliersList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Purchases Section -->
+<section id="purchases" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Purchase Records</h2>
+        <button onclick="togglePurchaseForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Purchase
+        </button>
+    </div>
+
+    <form id="purchaseForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addPurchase(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="number" name="supplierId" placeholder="Supplier ID" class="p-2 border rounded" required>
+            <input type="number" name="medicineId" placeholder="Medicine ID" class="p-2 border rounded" required>
+            <input type="number" name="quantity" placeholder="Quantity" class="p-2 border rounded" required>
+            <input type="date" name="purchaseDate" class="p-2 border rounded" required>
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Record Purchase
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Supplier</th>
+                    <th class="px-6 py-3 text-left">Medicine</th>
+                    <th class="px-6 py-3 text-left">Quantity</th>
+                    <th class="px-6 py-3 text-left">Date</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="purchasesList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Sales Section -->
+<section id="sales" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Sales Records</h2>
+        <button onclick="toggleSaleForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Sale
+        </button>
+    </div>
+
+    <form id="saleForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addSale(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="number" name="customerId" placeholder="Customer ID" class="p-2 border rounded" required>
+            <input type="number" name="medicineId" placeholder="Medicine ID" class="p-2 border rounded" required>
+            <input type="number" name="quantity" placeholder="Quantity" class="p-2 border rounded" required>
+            <input type="date" name="saleDate" class="p-2 border rounded" required>
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Record Sale
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Customer</th>
+                    <th class="px-6 py-3 text-left">Medicine</th>
+                    <th class="px-6 py-3 text-left">Quantity</th>
+                    <th class="px-6 py-3 text-left">Date</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="salesList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-700">Sales Records</h2>
+    <div class="flex gap-2">
+        <button onclick="printReport('sales')" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 no-print">
+            🖨️ Print Report
+        </button>
+    </div>
+</div>
+</section>
+
+<!-- Customers Section -->
+<section id="customers" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Customer Management</h2>
+        <button onclick="toggleCustomerForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Customer
+        </button>
+    </div>
+
+    <form id="customerForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addCustomer(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" name="name" placeholder="Full Name" class="p-2 border rounded" required>
+            <input type="tel" name="contact" placeholder="Contact Number" class="p-2 border rounded" required>
+            <input type="email" name="email" placeholder="Email" class="p-2 border rounded">
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Save Customer
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Name</th>
+                    <th class="px-6 py-3 text-left">Contact</th>
+                    <th class="px-6 py-3 text-left">Email</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customersList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Inventory Logs Section -->
+<section id="inventory" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Inventory Logs</h2>
+        <div class="flex gap-2">
+            <input type="number" id="filterMedicineId" placeholder="Medicine ID" class="p-2 border rounded w-32">
+            <select id="filterChangeType" class="p-2 border rounded">
+                <option value="">All Types</option>
+                <option>Added</option>
+                <option>Removed</option>
+                <option>Sold</option>
+                <option>Expired</option>
+            </select>
+            <button onclick="loadInventoryLogs()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Filter
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Medicine</th>
+                    <th class="px-6 py-3 text-left">Type</th>
+                    <th class="px-6 py-3 text-left">Quantity</th>
+                    <th class="px-6 py-3 text-left">Date</th>
+                    <th class="px-6 py-3 text-left">Notes</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryLogsList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+<section id="employees" class="section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-700">Employee Management</h2>
+        <button onclick="toggleEmployeeForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add Employee
+        </button>
+    </div>
+
+    <form id="employeeForm" class="bg-white p-6 rounded-lg shadow mb-8" style="display: none;" onsubmit="addEmployee(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" name="name" placeholder="Full Name" class="p-2 border rounded" required>
+            <input type="text" name="role" placeholder="Position" class="p-2 border rounded" required>
+            <input type="number" step="0.01" name="salary" placeholder="Salary" class="p-2 border rounded" required>
+            <input type="date" name="hiredate" class="p-2 border rounded" required>
+            <input type="tel" name="contact" placeholder="Contact Number" class="p-2 border rounded">
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Save Employee
+        </button>
+    </form>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">Name</th>
+                    <th class="px-6 py-3 text-left">Role</th>
+                    <th class="px-6 py-3 text-left">Salary</th>
+                    <th class="px-6 py-3 text-left">Hire Date</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employeesList" class="divide-y divide-gray-200"></tbody>
+        </table>
+    </div>
+</section>
+
+        </main>
+    </div>
+
+    <script>
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // Medicine Management
+        async function loadMedicines() {
+            try {
+                const response = await fetch('/medicines');
+                const medicines = await response.json();
+                const tbody = document.getElementById('medicinesList');
+                tbody.innerHTML = medicines.map(medicine => `
+                    <tr>
+                        <td class="px-6 py-4">${medicine.Name}</td>
+                        <td class="px-6 py-4">${medicine.Manufacturer}</td>
+                        <td class="px-6 py-4">${medicine.ExpiryDate}</td>
+                        <td class="px-6 py-4">$${medicine.Price}</td>
+                        <td class="px-6 py-4">${medicine.Stock}</td>
+                        <td class="px-6 py-4">
+                           <button onclick="editMedicine(${medicine.MedicineID})" class="text-blue-600 hover:text-blue-800 mr-2">
+    Edit
+</button>
+                            <button onclick="deleteMedicine(${medicine.MedicineID})" class="text-red-600 hover:text-red-800">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                alert('Error loading medicines: ' + error.message);
+            }
+        }
+
+        async function addMedicine(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const medicine = {
+                Name: formData.get('name'),
+                Manufacturer: formData.get('manufacturer'),
+                ExpiryDate: formData.get('expiry'),
+                Price: parseFloat(formData.get('price')),
+                Stock: parseInt(formData.get('stock')),
+                CategoryID: parseInt(formData.get('category'))
+            };
+
+            try {
+                const response = await fetch('/medicines', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(medicine)
+                });
+
+                if (response.ok) {
+                    event.target.reset();
+                    toggleMedicineForm();
+                    await loadMedicines();
+                }
+            } catch (error) {
+                alert('Error adding medicine: ' + error.message);
+            }
+        }
+
+        function toggleMedicineForm() {
+            const form = document.getElementById('medicineForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Categories Functions
+async function loadCategories() {
+    try {
+        const response = await fetch('/categories');
+        const categories = await response.json();
+        const tbody = document.getElementById('categoriesList');
+        tbody.innerHTML = categories.map(category => `
+            <tr>
+                <td class="px-6 py-4">${category.CategoryName}</td>
+                <td class="px-6 py-4">
+                    <button onclick="editCategory(${category.CategoryID})" class="text-blue-600 hover:text-blue-800 mr-2">
+                        Edit
+                    </button>
+                    <button onclick="deleteCategory(${category.CategoryID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading categories: ' + error.message);
+    }
+}
+
+async function addCategory(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const category = { CategoryName: formData.get('categoryName') };
+
+    try {
+        const response = await fetch('/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(category)
+        });
+
+        if (response.ok) {
+            event.target.reset();
+            toggleCategoryForm();
+            await loadCategories();
+        }
+    } catch (error) {
+        alert('Error adding category: ' + error.message);
+    }
+}
+
+function toggleCategoryForm() {
+    const form = document.getElementById('categoryForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Suppliers Functions
+async function loadSuppliers() {
+    try {
+        const response = await fetch('/suppliers');
+        const suppliers = await response.json();
+        const tbody = document.getElementById('suppliersList');
+        tbody.innerHTML = suppliers.map(supplier => `
+            <tr>
+                <td class="px-6 py-4">${supplier.Name}</td>
+                <td class="px-6 py-4">${supplier.ContactNumber}</td>
+                <td class="px-6 py-4">${supplier.Email}</td>
+                <td class="px-6 py-4">
+                    <button onclick="editSupplier(${supplier.SupplierID})" class="text-blue-600 hover:text-blue-800 mr-2">
+                        Edit
+                    </button>
+                    <button onclick="deleteSupplier(${supplier.SupplierID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading suppliers: ' + error.message);
+    }
+}
+
+// Purchases Functions
+async function loadPurchases() {
+    try {
+        const response = await fetch('/purchases');
+        const purchases = await response.json();
+        const tbody = document.getElementById('purchasesList');
+        tbody.innerHTML = purchases.map(purchase => `
+            <tr>
+                <td class="px-6 py-4">${purchase.SupplierName}</td>
+                <td class="px-6 py-4">${purchase.MedicineName}</td>
+                <td class="px-6 py-4">${purchase.Quantity}</td>
+                <td class="px-6 py-4">${purchase.PurchaseDate}</td>
+                <td class="px-6 py-4">
+                    <button onclick="deletePurchase(${purchase.PurchaseID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading purchases: ' + error.message);
+    }
+}
+
+async function addPurchase(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const purchase = {
+        SupplierID: parseInt(formData.get('supplierId')),
+        MedicineID: parseInt(formData.get('medicineId')),
+        Quantity: parseInt(formData.get('quantity')),
+        PurchaseDate: formData.get('purchaseDate')
+    };
+
+    try {
+        const response = await fetch('/purchases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(purchase)
+        });
+
+        if (response.ok) {
+            event.target.reset();
+            togglePurchaseForm();
+            await loadPurchases();
+            await loadMedicines(); // Refresh stock data
+        }
+    } catch (error) {
+        alert('Error adding purchase: ' + error.message);
+    }
+}
+
+async function deletePurchase(purchaseId) {
+    if (!confirm('Are you sure you want to delete this purchase?')) return;
+    
+    try {
+        const response = await fetch(`/purchases/${purchaseId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadPurchases();
+            await loadMedicines(); // Refresh stock data
+        }
+    } catch (error) {
+        alert('Error deleting purchase: ' + error.message);
+    }
+}
+
+function togglePurchaseForm() {
+    const form = document.getElementById('purchaseForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Sales Functions
+async function loadSales() {
+    try {
+        const response = await fetch('/sales');
+        const sales = await response.json();
+        const tbody = document.getElementById('salesList');
+        tbody.innerHTML = sales.map(sale => `
+            <tr>
+                <td class="px-6 py-4">${sale.CustomerName}</td>
+                <td class="px-6 py-4">${sale.MedicineName}</td>
+                <td class="px-6 py-4">${sale.Quantity}</td>
+                <td class="px-6 py-4">${sale.SaleDate}</td>
+                <td class="px-6 py-4">
+                    <button onclick="deleteSale(${sale.SaleID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading sales: ' + error.message);
+    }
+}
+
+async function addSale(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const sale = {
+        CustomerID: parseInt(formData.get('customerId')),
+        MedicineID: parseInt(formData.get('medicineId')),
+        Quantity: parseInt(formData.get('quantity')),
+        SaleDate: formData.get('saleDate')
+    };
+
+    try {
+        const response = await fetch('/sales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sale)
+        });
+
+        if (response.ok) {
+            event.target.reset();
+            toggleSaleForm();
+            await loadSales();
+            await loadMedicines(); // Refresh stock data
+        }
+    } catch (error) {
+        alert('Error adding sale: ' + error.message);
+    }
+}
+
+async function deleteSale(saleId) {
+    if (!confirm('Are you sure you want to delete this sale?')) return;
+    
+    try {
+        const response = await fetch(`/sales/${saleId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadSales();
+            await loadMedicines(); // Refresh stock data
+        }
+    } catch (error) {
+        alert('Error deleting sale: ' + error.message);
+    }
+}
+
+function toggleSaleForm() {
+    const form = document.getElementById('saleForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Customers Functions
+async function loadCustomers() {
+    try {
+        const response = await fetch('/customers');
+        const customers = await response.json();
+        const tbody = document.getElementById('customersList');
+        tbody.innerHTML = customers.map(customer => `
+            <tr>
+                <td class="px-6 py-4">${customer.Name}</td>
+                <td class="px-6 py-4">${customer.ContactNumber}</td>
+                <td class="px-6 py-4">${customer.Email}</td>
+                <td class="px-6 py-4">
+                    <button onclick="editCustomer(${customer.CustomerID})" class="text-blue-600 hover:text-blue-800 mr-2">
+                        Edit
+                    </button>
+                    <button onclick="deleteCustomer(${customer.CustomerID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading customers: ' + error.message);
+    }
+}
+
+async function addCustomer(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const customer = {
+        Name: formData.get('name'),
+        ContactNumber: formData.get('contact'),
+        Email: formData.get('email') || ''
+    };
+
+    try {
+        const response = await fetch('/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(customer)
+        });
+
+        if (response.ok) {
+            event.target.reset();
+            toggleCustomerForm();
+            await loadCustomers();
+        }
+    } catch (error) {
+        alert('Error adding customer: ' + error.message);
+    }
+}
+
+async function deleteCustomer(customerId) {
+    if (!confirm('Are you sure you want to delete this customer?')) return;
+    
+    try {
+        const response = await fetch(`/customers/${customerId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadCustomers();
+        }
+    } catch (error) {
+        alert('Error deleting customer: ' + error.message);
+    }
+}
+
+function toggleCustomerForm() {
+    const form = document.getElementById('customerForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Inventory Logs Functions
+async function loadInventoryLogs() {
+    try {
+        const medicineId = document.getElementById('filterMedicineId').value;
+        const changeType = document.getElementById('filterChangeType').value;
+        
+        let url = '/inventory-logs?';
+if (medicineId) url += `medicineId=${medicineId}&`;
+if (changeType) url += `changeType=${changeType}`;
+
+        const response = await fetch(url);
+        const logs = await response.json();
+        const tbody = document.getElementById('inventoryLogsList');
+        tbody.innerHTML = logs.map(log => `
+            <tr>
+                <td class="px-6 py-4">${log.MedicineName}</td>
+                <td class="px-6 py-4">${log.ChangeType}</td>
+                <td class="px-6 py-4">${log.QuantityChanged}</td>
+                <td class="px-6 py-4">${new Date(log.ChangeDate).toLocaleString()}</td>
+                <td class="px-6 py-4">${log.Notes}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading inventory logs: ' + error.message);
+    }
+}
+
+// Dashboard Functions
+async function loadDashboardStats() {
+    try {
+        const [medsRes, salesRes, expiringRes] = await Promise.all([
+            fetch('/medicines'),
+            fetch('/sales?limit=5'),
+            fetch('/medicines/expiring-soon?threshold=30')  // New fetch
+        ]);
+        
+        const medicines = await medsRes.json();
+        const recentSales = await salesRes.json();
+        const expiringSoon = await expiringRes.json();
+
+        document.getElementById('total-medicines').textContent = medicines.length;
+        document.getElementById('low-stock').textContent = medicines.filter(m => m.Stock < 10).length;
+        document.getElementById('recent-sales').textContent = recentSales.length;
+        document.getElementById('expiring-soon').textContent = expiringSoon.length;  // New line
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+    }
+}
+
+// Initialize all data
+async function initializeData() {
+    await loadDashboardStats();
+    await loadMedicines();
+    await loadCategories();
+    await loadSuppliers();
+    await loadPurchases();
+    await loadSales();
+    await loadCustomers();
+    await loadInventoryLogs();
+    await loadEmployees();  // Add this
+    await populateCategoryDropdown();  // Add this
+}
+
+async function populateCategoryDropdown() {
+    const select = document.querySelector('select[name="category"]');
+    try {
+        const response = await fetch('/categories');
+        const categories = await response.json();
+        select.innerHTML = '<option value="">Select Category</option>' + 
+            categories.map(c => `<option value="${c.CategoryID}">${c.CategoryName}</option>`).join('');
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
+
+        // Initial load
+showSection('dashboard');
+initializeData();
+
+// Set up periodic refresh every 30 seconds
+setInterval(initializeData, 30000);
+
+        // Employees Functions
+async function loadEmployees() {
+    try {
+        const response = await fetch('/employees');
+        const employees = await response.json();
+        const tbody = document.getElementById('employeesList');
+        tbody.innerHTML = employees.map(employee => `
+            <tr>
+                <td class="px-6 py-4">${employee.Name}</td>
+                <td class="px-6 py-4">${employee.Role}</td>
+                <td class="px-6 py-4">$${employee.Salary}</td>
+                <td class="px-6 py-4">${employee.HireDate}</td>
+                <td class="px-6 py-4">
+                    <button onclick="deleteEmployee(${employee.EmployeeID})" class="text-red-600 hover:text-red-800">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        alert('Error loading employees: ' + error.message);
+    }
+}
+
+async function addEmployee(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const employee = {
+        Name: formData.get('name'),
+        Role: formData.get('role'),
+        Salary: parseFloat(formData.get('salary')),
+        HireDate: formData.get('hiredate'),
+        ContactNumber: formData.get('contact') || ''
+    };
+
+    try {
+        const response = await fetch('/employees', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(employee)
+        });
+
+        if (response.ok) {
+            event.target.reset();
+            toggleEmployeeForm();
+            await loadEmployees();
+        }
+    } catch (error) {
+        alert('Error adding employee: ' + error.message);
+    }
+}
+
+async function deleteCategory(categoryId) {
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    
+    try {
+        const response = await fetch(`/categories/${categoryId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadCategories();
+        } else {
+            const error = await response.json();
+            alert(error.error);
+        }
+    } catch (error) {
+        alert('Error deleting category: ' + error.message);
+    }
+}
+
+let isEditingCategory = false;
+
+async function editCategory(categoryId) {
+    try {
+        const response = await fetch(`/categories/${categoryId}`);
+        const category = await response.json();
+        
+        document.getElementById('editCategoryId').value = category.CategoryID;
+        document.querySelector('[name="categoryName"]').value = category.CategoryName;
+        isEditingCategory = true;
+        toggleCategoryForm();
+    } catch (error) {
+        alert('Error loading category: ' + error.message);
+    }
+}
+
+function handleCategorySubmit(event) {
+    event.preventDefault();
+    if (isEditingCategory) {
+        updateCategory(event);
+    } else {
+        addCategory(event);
+    }
+}
+
+async function updateCategory(event) {
+    const formData = new FormData(event.target);
+    const categoryId = document.getElementById('editCategoryId').value;
+    
+    try {
+        const response = await fetch(`/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ CategoryName: formData.get('categoryName') })
+        });
+
+        if (response.ok) {
+            isEditingCategory = false;
+            event.target.reset();
+            toggleCategoryForm();
+            await loadCategories();
+        }
+    } catch (error) {
+        alert('Error updating category: ' + error.message);
+    }
+}
+
+async function deleteMedicine(medicineId) {
+    if (!confirm('Are you sure you want to delete this medicine?')) return;
+    
+    try {
+        const response = await fetch(`/medicines/${medicineId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            await loadMedicines();
+        } else {
+            const error = await response.json();
+            alert(error.error);
+        }
+    } catch (error) {
+        alert('Error deleting medicine: ' + error.message);
+    }
+}
+
+// Add these variables at the top of the script
+let isEditingMedicine = false;
+
+// Modified editMedicine function
+async function editMedicine(medicineId) {
+    try {
+        // Fetch medicine data
+        const response = await fetch(`/medicines/${medicineId}`);
+        const medicine = await response.json();
+        
+        // Populate form fields
+        document.getElementById('editMedicineId').value = medicine.MedicineID;
+        document.querySelector('[name="name"]').value = medicine.Name;
+        document.querySelector('[name="manufacturer"]').value = medicine.Manufacturer;
+        document.querySelector('[name="expiry"]').value = medicine.ExpiryDate;
+        document.querySelector('[name="price"]').value = medicine.Price;
+        document.querySelector('[name="stock"]').value = medicine.Stock;
+        
+        // Ensure categories are loaded
+        await populateCategoryDropdown();
+        document.querySelector('[name="category"]').value = medicine.CategoryID;
+        
+        // Switch to edit mode
+        isEditingMedicine = true;
+        toggleMedicineForm();
+    } catch (error) {
+        alert('Error loading medicine: ' + error.message);
+    }
+}
+
+// Modified submit handler
+function handleMedicineSubmit(event) {
+    event.preventDefault();
+    isEditingMedicine ? updateMedicine(event) : addMedicine(event);
+}
+
+// Modified update function
+async function updateMedicine(event) {
+    const formData = new FormData(event.target);
+    const medicineId = document.getElementById('editMedicineId').value;
+
+    const updateData = {
+        Name: formData.get('name'),
+        Manufacturer: formData.get('manufacturer'),
+        ExpiryDate: formData.get('expiry'),
+        Price: parseFloat(formData.get('price')),
+        Stock: parseInt(formData.get('stock')),
+        CategoryID: parseInt(formData.get('category'))
+    };
+
+    try {
+        const response = await fetch(`/medicines/${medicineId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+
+        if (response.ok) {
+            // Reset form and refresh data
+            isEditingMedicine = false;
+            event.target.reset();
+            toggleMedicineForm();
+            await loadMedicines();
+        } else {
+            const error = await response.json();
+            alert(error.error);
+        }
+    } catch (error) {
+        alert('Error updating medicine: ' + error.message);
+    }
+}
+
+function toggleEmployeeForm() {
+    const form = document.getElementById('employeeForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+    </script>
+
+    <script>
+// Add this function to handle printing
+function printReport(sectionId) {
+    const section = document.getElementById(sectionId);
+    const table = section.querySelector('table');
+    const title = section.querySelector('h2').innerText;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>${title}</title>
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                <style>
+                    body { padding: 20px; }
+                    h1 { font-size: 24px; margin-bottom: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+                    thead { background-color: #f8fafc; }
+                </style>
+            </head>
+            <body>
+                <h1>${title} - ${new Date().toLocaleDateString()}</h1>
+                ${table.outerHTML.replace(/<tbody/, '<tbody class="print-table"')}
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+// Add print buttons to other sections (purchases, inventory, customers, etc.)
+// Update each section's header similarly to the sales section example above
+</script>
+</body>
+</html>
